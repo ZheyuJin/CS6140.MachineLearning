@@ -36,13 +36,15 @@ public class ClassificationAlgo extends Algo {
    */
   @Override
   void exec() {
-    List<Double> trainingMSEList = new ArrayList<Double>();
-    List<Double> testMSEList = new ArrayList<Double>();
+    // List<Double> trainingMSEList = new ArrayList<Double>();
+    // List<Double> testMSEList = new ArrayList<Double>();
+    List<Boolean> trainACC = new ArrayList<>();
+    List<Boolean> testACC = new ArrayList<>();
+    
 
     for (int i = 0; i < kfold; i++) {
       System.out.println();
       init(); // load data.
-
 
       assert null != trainMatrix;
       assert null != testMatrix;
@@ -51,7 +53,7 @@ public class ClassificationAlgo extends Algo {
       tree.train();
 
       /* get train MSE */
-      double trainMSE = 0;
+//      double trainMSE = 0;
       for (Node n : tree.leafList) {
         for (int row : n.tdpIdxList) {
           trainMSE += Math.pow(n.lable - trainMatrix[row][labelIdx], 2);
