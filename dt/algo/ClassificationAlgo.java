@@ -22,6 +22,14 @@ public class ClassificationAlgo extends Algo {
     super(ld, labelIndex);
   }
 
+  private double acc(List<Boolean> lst) {
+    int trueCount = 0;
+    for (boolean b : lst)
+      if (b == true)
+        trueCount++;
+
+    return (double) trueCount / lst.size();
+  }
 
   private double avg(List<Double> lst) {
     double sum = 0;
@@ -31,19 +39,34 @@ public class ClassificationAlgo extends Algo {
     return sum / lst.size();
   }
 
-  /*
-   * double traningMSE = 0; double testMSE = 0;
-   */
-  @Override
+  int tp = 0;
+  int fp = 0;
+  int tn = 0;
+  int fn = 0;
+
+  void confuseMatrixDataCalc(double label, double predict) {
+    if (predict == 1) {
+      if (label == predict)
+        tp++;
+      else
+        fp++;
+    } else {
+      if (label == predict)
+        tn++;
+      else
+        fn++;
+    }
+  }
+
   void exec() {
     // List<Double> trainingMSEList = new ArrayList<Double>();
     // List<Double> testMSEList = new ArrayList<Double>();
-    List<Boolean> trainACC = new ArrayList<>();
-    List<Boolean> testACC = new ArrayList<>();
-    
+    List<Boolean> trainACCList = new ArrayList<>();
+    List<Boolean> testACCList = new ArrayList<>();
+
 
     for (int i = 0; i < kfold; i++) {
-      System.out.println();
+      System.out.println(i);
       init(); // load data.
 
       assert null != trainMatrix;
@@ -52,37 +75,34 @@ public class ClassificationAlgo extends Algo {
       tree = new ClassificationTree(trainMatrix, testMatrix, labelIdx, stopRatio);
       tree.train();
 
-      /* get train MSE */
-//      double trainMSE = 0;
+      /* get train ACC */
       for (Node n : tree.leafList) {
         for (int row : n.tdpIdxList) {
-          trainMSE += Math.pow(n.lable - trainMatrix[row][labelIdx], 2);
+          trainACCList.add(n.lable == trainMatrix[row][labelIdx]);
+          confuseMatrixDataCalc(n.lable, trainMatrix[row][labelIdx]);
         }
       }
-      trainMSE /= trainMatrix.length;
-      trainingMSEList.add(trainMSE);
+      // trainMSE /= trainMatrix.length;
+      // trainingMSEList.add(trainMSE);
 
-      /* get test MSE */
-      double testMSE = 0;
+      /* get test ACC */
       for (double[] dp : testMatrix) {
         double outLabel = tree.test(dp);
         double actualLabel = dp[labelIdx];
-        testMSE += Math.pow(outLabel - actualLabel, 2);
+        testACCList.add(outLabel == actualLabel);
+        confuseMatrixDataCalc(actualLabel, outLabel);
       }
-      testMSE /= testMatrix.length;
-      testMSEList.add(testMSE);
-
-      System.out.printf(
-          "\t stopRatio %.3f \t nodeCount %d \t leafCount %d \t trainMSE %.3f \t testMSE %.3f \n",
-          stopRatio, tree.nodeCount, tree.leafCount, trainMSE, testMSE);
     }
 
-    double trainError = avg(trainingMSEList);
-    double testError = avg(testMSEList);
+    double trainACC = acc(trainACCList);
+    double testACC = acc(testACCList);
 
-    System.out.printf("stopRatio %.3f \t tranErrorMSE avg %.3f \t testErrorMSE avg %.3f\n",
-        stopRatio, trainError, testError);
+    System.out.printf("stopRatio %.3f \t tranACC avg %.3f \t testACC avg %.3f\n", stopRatio,
+        trainACC, testACC);
 
+    double totalCount = (double)(tp + fp + tn + fn);
+    System.out.printf("truePos %.4f \t falsePos %.4f \t trueNeg %.4f \t falseNeg %.4f \t", tp
+        / totalCount, fp / totalCount, tn / totalCount, fn / totalCount);
   }
 
 
