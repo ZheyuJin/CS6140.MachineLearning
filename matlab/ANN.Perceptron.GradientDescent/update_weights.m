@@ -1,13 +1,14 @@
 %update ANN weights
 function [nw] = update_weights(rate,w, curDeriv, prevLayerOutput)
 % not using momentum
-nw= w + rate *  prevLayerOutput *curDeriv';
+%delta = rate *  prevLayerOutput *curDeriv';
+%nw= w + delta;
 
 %using momentem
-% momenteum = rate*0.0001;
-% nw =w;
-% nw= nw + rate *  prevLayerOutput *curDeriv';
-% nw = nw + momenteum *w;
+momenteum = rate*0.001;
+nw =w;
+nw= nw + rate *  prevLayerOutput *curDeriv';
+nw = nw + momenteum *w;
 
 
 % [rows, cols] = size(w);
