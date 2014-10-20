@@ -9,7 +9,7 @@ for row = 1: size(X,1)
     
     posProbVec = zeros(1,length(dp));
     negProbVec = zeros(1,length(dp));
-    % cnostruct posProbVec for multiplication.
+    % construct posProbVec for multiplication.
     for col = 1: length(dp)
         if dp(col) > 0
             posProbVec(col) =  upperRatioPos(col)  ;
