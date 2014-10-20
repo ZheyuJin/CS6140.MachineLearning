@@ -1,4 +1,4 @@
-function [ falsePosRate, falseNegRate, overallErrRate] = getReportLine( out, label )
+function [ ret] = getReportLine( out, label )
 %GETREPORTLINE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -16,6 +16,7 @@ falsePosRate = sum(outNonSpam)/length(outNonSpam);
 
 %True positive rate (or sensitivity): FNR=FN/(TP+FN)
 falseNegRate = 1 - sum(outSpam)/length(outSpam);
+ret =[falsePosRate, falseNegRate, overallErrRate];
 end
 
 %                           Condition: Spam        Not Spam
