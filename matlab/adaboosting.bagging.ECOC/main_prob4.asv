@@ -1,0 +1,26 @@
+%% loading trainin and test data.
+%D = read_matrix( '8newsgroup\train.trec\feature_matrix.txt',11314,1754 );%train
+%T = read_matrix( '8newsgroup\test.trec\feature_matrix.txt',7532,1754 );%test
+
+%% random ECOC with size 20.
+FunctionCount = 20;
+ECOC_Table = round(rand(8,FunctionCount)); % 8 class, 20 ECOC funcs.
+
+
+
+%% tranning
+ROUND_MAX = 2;
+getStumpFunc = @getOptStump_fast; %hope it's fast.
+originalTestLabel = D(:,end);
+for f  = 1: FunctionCount
+    mapping = ECOC_Table(:,f);
+    %mapping label.
+    D(:,end) = mapper(mapping, originalTestLabel);
+    
+    % do boosing
+    [ alphaVec,stumpVec] ...
+    = adaboosing_training( D(:,1:end-1),D(:,end),ROUND_MAX,getStumpFunc);
+    alphaVec
+end
+
+
