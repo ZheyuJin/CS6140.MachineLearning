@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import dt.dataloader.IMatrixLoader;
+import dt.dataloader.SamplingSpamLoader;
 import dt.dataloader.SpamMatrixLoader;
 
 
@@ -31,13 +32,14 @@ public class BaggingClassificationAlgo extends Algo {
     return sum / lst.size();
   }
 
+  void exec() {
+    throw new UnsupportedOperationException();
+  }
+
   /*
    * double traningMSE = 0; double testMSE = 0;
    */
-  @Override
-  void exec() {
-//    List<Double> trainingMSEList = new ArrayList<Double>();
-//    List<Double> testMSEList = new ArrayList<Double>();
+  double[] predict() {
 
     System.out.println();
     init(); // load data.
@@ -48,36 +50,12 @@ public class BaggingClassificationAlgo extends Algo {
     tree = new ClassificationTree(trainMatrix, testMatrix, labelIdx, stopRatio);
     tree.train();
 
-    /* get train MSE */
-    double trainMSE = 0;
-    for (Node n : tree.leafList) {
-      for (int row : n.tdpIdxList) {
-        trainMSE += Math.pow(n.lable - trainMatrix[row][labelIdx], 2);
-      }
+    double[] predictino = new double[testMatrix.length];
+
+    for (int i = 0; i < testMatrix.length; i++) {
+      predictino[i] = tree.test(testMatrix[i]);
     }
-    trainMSE /= trainMatrix.length;
-    trainingMSEList.add(trainMSE);
-
-    /* get test MSE */
-    double testMSE = 0;
-    for (double[] dp : testMatrix) {
-      double outLabel = tree.test(dp);
-      double actualLabel = dp[labelIdx];
-      testMSE += Math.pow(outLabel - actualLabel, 2);
-    }
-    testMSE /= testMatrix.length;
-    testMSEList.add(testMSE);
-
-    System.out.printf(
-        "\t stopRatio %.3f \t nodeCount %d \t leafCount %d \t trainMSE %.3f \t testMSE %.3f \n",
-        stopRatio, tree.nodeCount, tree.leafCount, trainMSE, testMSE);
-
-    double trainError = avg(trainingMSEList);
-    double testError = avg(testMSEList);
-
-    System.out.printf("stopRatio %.3f \t tranErrorMSE avg %.3f \t testErrorMSE avg %.3f\n",
-        stopRatio, trainError, testError);
-
+    return predictino;
   }
 
 
@@ -205,15 +183,46 @@ public class BaggingClassificationAlgo extends Algo {
     double[][] totalLabel = new double[T][];
 
     for (int i = 0; i < T; i++) {
-      SpamMatrixLoader ld = new SpamMatrixLoader();
+      System.out.println("iteration " +i);
+      IMatrixLoader ld = new SamplingSpamLoader();
       BaggingClassificationAlgo algo = new BaggingClassificationAlgo(ld);
-      totalLabel[i] = algo.exec();
+      totalLabel[i] = algo.predict();
     }
 
-    // summ up
+    // vote
+    double[] outlabel = vote(totalLabel);
+
+    // check acc
+    SpamMatrixLoader ld = new SpamMatrixLoader();
+    double[][] testmatrix = ld.loadTestMatrix();
+    double[] testlabel = new double[testmatrix.length];
+
+    int idx = 0;
+    for (double[] line : testmatrix)
+      testlabel[idx++] = line[line.length - 1];
+
+    int accCount = 0;
+    for (int i = 0; i < testlabel.length; i++)
+      if (testlabel[i] == outlabel[i]) // float comparison..
+        accCount++;
+
+    System.out.printf("bagging acc= %f", accCount / testlabel.length);
   }
 
+  private static double sum(double[] array){
+    double ans =0;
+    for(double d: array)
+      ans += d;
+    return ans;
+  }
+  
   private static double[] vote(double[][] totalLabel) {
-    return null;
+    double[] ans = new double[totalLabel.length];
+    int idx =0;
+    for(double[] array: totalLabel){
+      ans[idx++]= Math.round(sum(array));
+    }
+    
+    return ans;
   }
 }

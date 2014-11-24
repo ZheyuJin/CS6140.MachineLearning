@@ -127,29 +127,4 @@ public class SpamMatrixLoader implements IMatrixLoader {
     }
   }
 
-  private static void noDuplicate(double[][] train, double[][] test) {
-    HashSet<double[]> set = new HashSet<>();
-    for (double[] d : train) {
-      if (set.contains(d)) {
-        for (double dd : d) {
-          System.err.printf("%f,", dd);
-        }
-      } else
-        set.add(d);
-    }
-
-    for (double[] d : test) {
-      if (set.contains(d)) {
-        for (double dd : d) {
-          System.err.printf("%f,", dd);
-        }
-        System.err.println();
-      } else
-        set.add(d);
-    }
-
-    assert train.length + test.length == set.size() : train.length + " " + test.length + " "
-        + set.size();
-
-  }
 }
