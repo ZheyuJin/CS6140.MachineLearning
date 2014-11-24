@@ -179,7 +179,7 @@ public class BaggingClassificationAlgo extends Algo {
    */
   public static void main(String[] args) {
     // TODO Auto-generated method stub
-    int T = 50;
+    int T = 1;
     double[][] totalLabel = new double[T][];
 
     for (int i = 0; i < T; i++) {
@@ -201,8 +201,10 @@ public class BaggingClassificationAlgo extends Algo {
     for (double[] line : testmatrix)
       testlabel[idx++] = line[line.length - 1];
 
+    System.out.println("testlabel len " + testlabel.length);
+    System.out.println("outlabel len " + outlabel.length);
     int accCount = 0;
-    for (int i = 0; i < testlabel.length; i++)
+    for (int i = 0; i < outlabel.length; i++)
       if (testlabel[i] == outlabel[i]) // float comparison..
         accCount++;
 
@@ -217,11 +219,17 @@ public class BaggingClassificationAlgo extends Algo {
   }
   
   private static double[] vote(double[][] totalLabel) {
-    double[] ans = new double[totalLabel.length];
-    int idx =0;
+    double[] ans = new double[totalLabel[0].length];
+    int labelcount = totalLabel.length;
+    
     for(double[] array: totalLabel){
-      ans[idx++]= Math.round(sum(array));
+      for(int i=0; i< array.length; i++){
+        ans[i] += array[i];
+      }
     }
+    
+    for(int i=0; i< ans.length; i++)
+      ans[i]= Math.round(ans[i]/labelcount);
     
     return ans;
   }
